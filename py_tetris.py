@@ -46,6 +46,9 @@ class Game:
 		elif (self.current_piece.x) != (self.cols - len(self.current_piece.shape[0])) and keys[pygame.K_RIGHT]:
 			self.current_piece.x += 1
 
+		if(keys[pygame.K_UP]):
+			self.rotate_shape_90()
+
 		if(self.current_piece.y == self.rows - len(self.current_piece.shape) or self.check_collision()):
 			x_base = self.current_piece.x
 			y_base = self.current_piece.y
@@ -93,11 +96,24 @@ class Game:
 
 		return False
 
+	def rotate_shape_90(self):
+		orig_rows = len(self.current_piece.shape)
+		orig_cols = len(self.current_piece.shape[0])
+
+		rotated_shape = np.ones((orig_cols, orig_rows), dtype=bool)
+		print(rotated_shape)
+
+		for row in range(orig_rows):
+			for col in range(orig_cols):
+				rotated_shape[col][row] = self.current_piece.shape[row][col]
+
+		self.current_piece.shape = rotated_shape
+
 	def draw_block(self, x, y, color):
 		x_ord = x * block_size
 		y_ord = y * block_size
 
-		pygame.draw.rect(self.screen, color, pygame.Rect(x_ord, y_ord, self.block_size, self.block_size))
+		pygame.draw.rect(self.screen, color, pygame.Rect(x_ord, y_ord, self.block_size - 2, self.block_size - 2))
 
 if __name__ == "__main__":
 	rows, cols = 24, 10
@@ -120,4 +136,7 @@ if __name__ == "__main__":
 		g.render()
 
 		pygame.display.update()
-		pygame.time.Clock().tick(8)
+		if(pygame.key.get_pressed()[pygame.K_DOWN]):
+			pygame.time.Clock().tick(16)
+		else:
+			pygame.time.Clock().tick(8)
