@@ -47,7 +47,7 @@ class Game:
 			self.current_piece.x += 1
 
 		if(keys[pygame.K_UP]):
-			self.rotate_shape_90()
+			self.current_piece.shape = list(zip(*self.current_piece.shape[::-1]))
 
 		if(self.current_piece.y == self.rows - len(self.current_piece.shape) or self.check_collision()):
 			x_base = self.current_piece.x
@@ -86,7 +86,6 @@ class Game:
 		x_base = self.current_piece.x
 		y_base = self.current_piece.y + len(self.current_piece.shape) - 1
 
-
 		for i in range(len(final_row)):
 			block = final_row[i]
 			x_off = x_base + i
@@ -95,19 +94,6 @@ class Game:
 				return True
 
 		return False
-
-	def rotate_shape_90(self):
-		orig_rows = len(self.current_piece.shape)
-		orig_cols = len(self.current_piece.shape[0])
-
-		rotated_shape = np.ones((orig_cols, orig_rows), dtype=bool)
-		print(rotated_shape)
-
-		for row in range(orig_rows):
-			for col in range(orig_cols):
-				rotated_shape[col][row] = self.current_piece.shape[row][col]
-
-		self.current_piece.shape = rotated_shape
 
 	def draw_block(self, x, y, color):
 		x_ord = x * block_size
