@@ -32,8 +32,6 @@ class Game:
 								(0x00, 0xff, 0x00),
 								(0x8b, 0x00, 0x8b),
 								(0xff, 0x00, 0x00)]
-		#self.rotate_mat_90 = [[cos(to_radians(90)), -1 * sin(to_radians(90))], 
-							  #b[sin(to_radians(90)), cos(to_radians(90))]]
 
 	def init_piece(self, color, shape):
 		self.current_piece = Piece(color, shape, self.cols//2, 0)
@@ -62,6 +60,8 @@ class Game:
 				for col in range(len(self.current_piece.shape[0])):
 					if(self.current_piece.shape[row][col]):
 						self.state[y_base + row][x_base + col] = self.current_piece.color
+
+			self.remove_full_rows()
 
 			self.init_piece(random.choice(self.possible_colors), random.choice(self.possible_shapes))
 
@@ -96,6 +96,23 @@ class Game:
 
 		return False
 
+	def remove_full_rows(self):
+		updated_state = np.zeros((rows, cols), dtype=(int, 3))
+
+		index = self.rows - 1
+		for i in range(self.rows - 1, -1, -1):
+			if(not self.is_row_full(self.state[i])):
+				updated_state[index] = self.state[i]
+				index -= 1
+
+		self.state = updated_state
+
+	def is_row_full(self, row):
+		for block in row:
+			if(sum(block) == 0):
+				return False
+		return True
+
 	def draw_block(self, x, y, color):
 		x_ord = x * block_size
 		y_ord = y * block_size
@@ -116,13 +133,13 @@ if __name__ == "__main__":
 	while g.running:
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
-				running = False
+				g.running = False
 
 		g.update(pygame.key.get_pressed())
 		g.render()
 
 		pygame.display.update()
 		if(pygame.key.get_pressed()[pygame.K_DOWN]):
-			pygame.time.Clock().tick(10)
+			pygame.time.Clock().tick(20)
 		else:
-			pygame.time.Clock().tick(5)
+			pygame.time.Clock().tick(6)
