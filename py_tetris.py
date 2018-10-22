@@ -13,6 +13,8 @@ class Game:
 	def __init__(self, rows, cols, block_size, screen):
 		self.rows = rows
 		self.cols = cols
+		self.level = 1
+		self.score = 0
 		self.block_size = block_size
 		self.screen = screen
 		self.state = np.zeros((rows, cols), dtype=(int, 3))
@@ -74,6 +76,34 @@ class Game:
 
 		screen.fill((0, 0, 0))
 
+		pygame.draw.rect(self.screen, (255, 255, 255), pygame.Rect((self.screen.get_width()//2 - 5), 0, 10, self.screen.get_height()))
+
+		txt_title = pygame.font.Font('freesansbold.ttf', 35)
+		ts_title = txt_title.render("PyTetris", True, (255, 255, 255))
+		tr_title = ts_title.get_rect()
+
+		txt_next_piece = pygame.font.Font('freesansbold.ttf', 16)
+		ts_next_piece = txt_next_piece.render("Next piece", True, (255, 255, 255))
+		tr_next_piece = ts_next_piece.get_rect()
+
+		txt_level = pygame.font.Font('freesansbold.ttf', 16)
+		ts_level = txt_level.render("Level: " + str(self.level), True, (255, 255, 255))
+		tr_level = ts_level.get_rect()
+
+		txt_score = pygame.font.Font('freesansbold.ttf', 16)
+		ts_score = txt_score.render("Score: " + str(self.score), True, (255, 255, 255))
+		tr_score = ts_score.get_rect()
+
+		tr_title.center = (self.screen.get_width()//(4/3), 50)
+		tr_next_piece.center = (self.screen.get_width()//(4/3), 100)
+		tr_level.center = (self.screen.get_width()//(4/3), 250)
+		tr_score.center = (self.screen.get_width()//(4/3), 300)
+
+		screen.blit(ts_title, tr_title)
+		screen.blit(ts_next_piece, tr_next_piece)
+		screen.blit(ts_level, tr_level)
+		screen.blit(ts_score, tr_score)
+
 		x_base = self.current_piece.x
 		y_base = self.current_piece.y
 
@@ -123,12 +153,14 @@ if __name__ == "__main__":
 	rows, cols = 24, 10
 	block_size = 20
 	sw, sh = cols * block_size, rows * block_size
-	screen = pygame.display.set_mode((sw, sh))
+	screen = pygame.display.set_mode((2 * sw + 10, sh))
 	pygame.display.set_caption("Tetris")
 	pygame.display.flip()
 
 	g = Game(rows, cols, block_size, screen)
 	g.init_piece(random.choice(g.possible_colors), random.choice(g.possible_shapes))
+
+	pygame.font.init()
 
 	while g.running:
 		for event in pygame.event.get():
