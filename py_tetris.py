@@ -18,7 +18,6 @@ class Game:
 		self.block_size = block_size
 		self.screen = screen
 		self.state = np.zeros((rows, cols), dtype=(int, 3))
-		self.current_piece = None
 		self.running = True
 		self.possible_shapes = [[[True, True, True, True]], 
 								[[True, False, False], [True, True, True]], 
@@ -34,9 +33,8 @@ class Game:
 								(0x00, 0xff, 0x00),
 								(0x8b, 0x00, 0x8b),
 								(0xff, 0x00, 0x00)]
-
-	def init_piece(self, color, shape):
-		self.current_piece = Piece(color, shape, self.cols//2, 0)
+		self.current_piece = Piece(random.choice(self.possible_colors), random.choice(self.possible_shapes), self.cols//2, 0)
+		self.next_piece = Piece(random.choice(self.possible_colors), random.choice(self.possible_shapes), self.cols//2, 0)
 
 	def update(self, keys):
 		if not self.current_piece:
@@ -65,7 +63,8 @@ class Game:
 
 			self.remove_full_rows()
 
-			self.init_piece(random.choice(self.possible_colors), random.choice(self.possible_shapes))
+			self.current_piece = self.next_piece
+			self.next_piece = Piece(random.choice(self.possible_colors), random.choice(self.possible_shapes), self.cols//2, 0)
 
 			if(self.check_collision(self.current_piece.shape, self.current_piece.x, self.current_piece.y)):
 				self.running = False
@@ -76,7 +75,7 @@ class Game:
 
 		screen.fill((0, 0, 0))
 
-		pygame.draw.rect(self.screen, (255, 255, 255), pygame.Rect((self.screen.get_width()//2 - 5), 0, 10, self.screen.get_height()))
+		pygame.draw.line(self.screen, (255, 255, 255), (self.screen.get_width()//2, 0), (self.screen.get_width()//2, self.screen.get_height()), 10)
 
 		txt_title = pygame.font.Font('freesansbold.ttf', 35)
 		ts_title = txt_title.render("PyTetris", True, (255, 255, 255))
@@ -86,23 +85,45 @@ class Game:
 		ts_next_piece = txt_next_piece.render("Next piece", True, (255, 255, 255))
 		tr_next_piece = ts_next_piece.get_rect()
 
-		txt_level = pygame.font.Font('freesansbold.ttf', 16)
+		txt_level = pygame.font.Font('freesansbold.ttf', 20)
 		ts_level = txt_level.render("Level: " + str(self.level), True, (255, 255, 255))
 		tr_level = ts_level.get_rect()
 
-		txt_score = pygame.font.Font('freesansbold.ttf', 16)
+		txt_score = pygame.font.Font('freesansbold.ttf', 20)
 		ts_score = txt_score.render("Score: " + str(self.score), True, (255, 255, 255))
 		tr_score = ts_score.get_rect()
 
 		tr_title.center = (self.screen.get_width()//(4/3), 50)
 		tr_next_piece.center = (self.screen.get_width()//(4/3), 100)
-		tr_level.center = (self.screen.get_width()//(4/3), 250)
-		tr_score.center = (self.screen.get_width()//(4/3), 300)
+		tr_level.center = (self.screen.get_width()//(4/3), 270)
+		tr_score.center = (self.screen.get_width()//(4/3), 320)
 
 		screen.blit(ts_title, tr_title)
 		screen.blit(ts_next_piece, tr_next_piece)
 		screen.blit(ts_level, tr_level)
 		screen.blit(ts_score, tr_score)
+
+		pygame.draw.line(self.screen, (255, 255, 255), (self.screen.get_width()//(4/3) - self.block_size * 2.5, 120), (self.screen.get_width()//(4/3) + self.block_size * 2.5, 120), 4)
+		pygame.draw.line(self.screen, (255, 255, 255), (self.screen.get_width()//(4/3) + self.block_size * 2.5, 120), (self.screen.get_width()//(4/3) + self.block_size * 2.5, 120 + self.block_size * 5), 4)
+		pygame.draw.line(self.screen, (255, 255, 255), (self.screen.get_width()//(4/3) + self.block_size * 2.5, 120 + self.block_size * 5), (self.screen.get_width()//(4/3) - self.block_size * 2.5, 120 + self.block_size * 5), 4)
+		pygame.draw.line(self.screen, (255, 255, 255), (self.screen.get_width()//(4/3) - self.block_size * 2.5, 120 + self.block_size * 5), (self.screen.get_width()//(4/3) - self.block_size * 2.5, 120), 4)
+
+		next_piece_height = len(self.next_piece.shape)
+		next_piece_width = len(self.next_piece.shape[0])
+
+		height_margin = (5 * self.block_size - next_piece_height * self.block_size)//2
+		width_margin = ((5 * self.block_size - next_piece_width * self.block_size)//2)
+
+		base_x = self.screen.get_width()//(4/3) - self.block_size * 2.5
+		base_y = 120
+
+		for row in range(next_piece_height):
+			for col in range(next_piece_width):
+				if(self.next_piece.shape[row][col]):
+					pygame.draw.rect(self.screen, self.next_piece.color, pygame.Rect(base_x + width_margin + col * self.block_size, base_y + height_margin + row * self.block_size, self.block_size - 2, self.block_size - 2))
+
+		print(height_margin)
+		print(width_margin)
 
 		x_base = self.current_piece.x
 		y_base = self.current_piece.y
@@ -158,7 +179,6 @@ if __name__ == "__main__":
 	pygame.display.flip()
 
 	g = Game(rows, cols, block_size, screen)
-	g.init_piece(random.choice(g.possible_colors), random.choice(g.possible_shapes))
 
 	pygame.font.init()
 
