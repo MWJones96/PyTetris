@@ -13,8 +13,9 @@ class Game:
 	def __init__(self, rows, cols, block_size, screen):
 		self.rows = rows
 		self.cols = cols
-		self.level = 1
+		self.level = 0
 		self.score = 0
+		self.lines_completed = 0
 		self.block_size = block_size
 		self.screen = screen
 		self.state = np.zeros((rows, cols), dtype=(int, 3))
@@ -122,9 +123,6 @@ class Game:
 				if(self.next_piece.shape[row][col]):
 					pygame.draw.rect(self.screen, self.next_piece.color, pygame.Rect(base_x + width_margin + col * self.block_size, base_y + height_margin + row * self.block_size, self.block_size - 2, self.block_size - 2))
 
-		print(height_margin)
-		print(width_margin)
-
 		x_base = self.current_piece.x
 		y_base = self.current_piece.y
 
@@ -149,14 +147,31 @@ class Game:
 
 	def remove_full_rows(self):
 		updated_state = np.zeros((rows, cols), dtype=(int, 3))
+		rows_removed = 0
 
 		index = self.rows - 1
 		for i in range(self.rows - 1, -1, -1):
 			if(not self.is_row_full(self.state[i])):
 				updated_state[index] = self.state[i]
 				index -= 1
+			else:
+				rows_removed += 1
 
 		self.state = updated_state
+		self.lines_completed += rows_removed
+
+		if (self.lines_completed >= 10 and self.level < 10):
+			self.lines_completed = 0
+			self.level += 1
+
+		if(rows_removed == 1):
+			self.score += 40 * (self.level + 1)
+		elif(rows_removed == 2):
+			self.score += 100 * (self.level + 1)
+		elif(rows_removed == 3):
+			self.score += 300 * (self.level + 1)
+		elif(rows_removed == 4):
+			self.score += 1200 * (self.level + 1)
 
 	def is_row_full(self, row):
 		for block in row:
@@ -192,6 +207,6 @@ if __name__ == "__main__":
 
 		pygame.display.update()
 		if(pygame.key.get_pressed()[pygame.K_DOWN]):
-			pygame.time.Clock().tick(20)
+			pygame.time.Clock().tick(20 + g.level)
 		else:
-			pygame.time.Clock().tick(6)
+			pygame.time.Clock().tick(6 + g.level)
