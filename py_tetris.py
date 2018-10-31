@@ -29,8 +29,9 @@ class Game:
 		self.screen = screen # The screen that will be drawed to
 		self.state = np.zeros((rows, cols), dtype=(int, 3)) # Represents the color for each block placed in the game
 		self.running = True # Whether the game is ongoing
-		self.num_updates = 0 # The number of updates that have occurred since the last block fell
-		self.update_rate = 30 - (self.level * 2) # The rate at which the block falls (the update delay)
+		self.num_updates = 0 # The number of updates that have occurred since the last reset
+		self.gravity_update_rate = 15 - (self.level * 2) # The rate at which the block falls (the update delay)
+		self.move_update_rate = 5	# The rate at which player input is received
 		self.possible_shapes = [[[True, True, True, True]], 				# Boolean arrays for each possible shape
 								[[True, False, False], [True, True, True]], 
 								[[False, False, True], [True, True, True]], 
@@ -55,29 +56,27 @@ class Game:
 		if not self.current_piece:
 			return
 
-		self.num_updates += 1
-
 		# Checks if the user is pressing left, right, or up
-		if(keys[pygame.K_LEFT]):
-			 if(not self.check_collision(self.current_piece.shape, self.current_piece.x - 1, self.current_piece.y)):
-			 	self.current_piece.x -= 1
-		elif(keys[pygame.K_RIGHT]):
-			 if(not self.check_collision(self.current_piece.shape, self.current_piece.x + 1, self.current_piece.y)):
-			 	self.current_piece.x += 1
-		elif(keys[pygame.K_UP]):
-			rotated_shape = list(zip(*self.current_piece.shape[::-1]))
-			if(not self.check_collision(rotated_shape, self.current_piece.x, self.current_piece.y)):
-				self.current_piece.shape = rotated_shape
+		if(self.num_updates % self.move_update_rate == 0):
+			if(keys[pygame.K_LEFT]):
+				 if(not self.check_collision(self.current_piece.shape, self.current_piece.x - 1, self.current_piece.y)):
+				 	self.current_piece.x -= 1
+			elif(keys[pygame.K_RIGHT]):
+				 if(not self.check_collision(self.current_piece.shape, self.current_piece.x + 1, self.current_piece.y)):
+				 	self.current_piece.x += 1
+			elif(keys[pygame.K_UP]):
+				rotated_shape = list(zip(*self.current_piece.shape[::-1]))
+				if(not self.check_collision(rotated_shape, self.current_piece.x, self.current_piece.y)):
+					self.current_piece.shape = rotated_shape
 
 		# Modifies the update rate depending on whether the down key is pressed
 		if(keys[pygame.K_DOWN]):
-			self.update_rate = 1
+			self.gravity_update_rate = 1
 		else:
-			self.update_rate = 30 - (self.level * 2)
+			self.gravity_update_rate = 15 - (self.level * 2)
 
 		# Will only make the block fall down after update_rate many updates
-		if(self.num_updates % self.update_rate == 0):
-			self.num_updates = 0
+		if(self.num_updates % self.gravity_update_rate == 0):
 			#If the new position of the block will not cause a collision
 			if(not self.check_collision(self.current_piece.shape, self.current_piece.x, self.current_piece.y + 1)):
 				self.current_piece.y += 1
@@ -101,6 +100,8 @@ class Game:
 
 				if(self.check_collision(self.current_piece.shape, self.current_piece.x, self.current_piece.y)):
 					self.running = False
+
+		self.num_updates += 1
 
 	"""
 	Draws the state of the game to the screen
@@ -166,6 +167,9 @@ class Game:
 			for col in range(self.cols):
 				self.draw_block(col, row, self.state[row][col])
 
+		# Draw the current piece's shadow
+		self.draw_shadow()
+
 		# Draw the current piece on the screen
 		for row in range(len(self.current_piece.shape)):
 			for col in range(len(self.current_piece.shape[0])):
@@ -228,12 +232,33 @@ class Game:
 				return False
 		return True
 
-	# Draws a block at coordinate x, y on the screen with a color given by color
-	def draw_block(self, x, y, color):
+	# Draws a block at coordinate x, y on the screen with a color given by color, with shadow mode optional
+	def draw_block(self, x, y, color, shadow=False):
 		x_ord = x * block_size
 		y_ord = y * block_size
 
-		pygame.draw.rect(self.screen, color, pygame.Rect(x_ord, y_ord, self.block_size - 2, self.block_size - 2))
+		pygame.draw.rect(self.screen, (0, 0, 0), pygame.Rect(x_ord, y_ord, self.block_size, self.block_size))
+
+		if shadow:
+			pygame.draw.rect(self.screen, color, pygame.Rect(x_ord, y_ord, self.block_size, self.block_size))
+			pygame.draw.rect(self.screen, (0, 0, 0), pygame.Rect(x_ord + 2, y_ord + 2, self.block_size - 4, self.block_size - 4))
+		else:
+			pygame.draw.rect(self.screen, color, pygame.Rect(x_ord, y_ord, self.block_size - 2, self.block_size - 2))
+
+	def draw_shadow(self):
+		y_off = self.current_piece.y
+
+		while(not self.check_collision(self.current_piece.shape, self.current_piece.x, y_off)):
+			y_off += 1
+
+		y_off -= 1
+		x_off = self.current_piece.x
+
+		for row in range(len(self.current_piece.shape)):
+			for col in range(len(self.current_piece.shape[0])):
+				if(self.current_piece.shape[row][col]):
+					self.draw_block(x_off + col, y_off + row, self.current_piece.color, shadow=True)
+
 
 if __name__ == "__main__":
 	# Size of the game board
