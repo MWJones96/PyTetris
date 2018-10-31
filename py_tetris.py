@@ -31,7 +31,7 @@ class Game:
 		self.running = True # Whether the game is ongoing
 		self.num_updates = 0 # The number of updates that have occurred since the last reset
 		self.gravity_update_rate = 15 - (self.level * 2) # The rate at which the block falls (the update delay)
-		self.move_update_rate = 5	# The rate at which player input is received
+		self.move_update_rate = 4	# The rate at which player input is received
 		self.possible_shapes = [[[True, True, True, True]], 				# Boolean arrays for each possible shape
 								[[True, False, False], [True, True, True]], 
 								[[False, False, True], [True, True, True]], 
