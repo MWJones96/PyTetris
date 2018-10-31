@@ -149,7 +149,7 @@ class Game:
 		next_piece_width = len(self.next_piece.shape[0])
 
 		height_margin = (5 * self.block_size - next_piece_height * self.block_size)//2
-		width_margin = ((5 * self.block_size - next_piece_width * self.block_size)//2)
+		width_margin = (5 * self.block_size - next_piece_width * self.block_size)//2
 
 		base_x = self.screen.get_width()//(4/3) - self.block_size * 2.5
 		base_y = 100
